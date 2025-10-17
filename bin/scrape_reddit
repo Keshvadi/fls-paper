@@ -1,0 +1,75 @@
+#!/usr/bin/env python
+"""Simple commandline interface for scraping Reddit for live stream URLs."""
+import argparse
+import logging
+from streamscrape import reddit
+from streamscrape import utils
+import time
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(
+        description="""
+        Script to scrape Reddit for live stream URLS.
+        """
+    )
+    parser.add_argument(
+        "-s",
+        "--subreddit_name",
+        default="",
+        dest="subreddit_name",
+        help="Name of the subreddit to scrape.\
+              Leave blank to scrape all known streaming subreddits",
+    )
+    parser.add_argument(
+        "-n",
+        "--num_posts",
+        type=int,
+        dest="num_posts",
+        default=500,  # Default max allowed by reddit
+        help="How many of the hot posts on the subreddit to scrape",
+    )
+    # TODO: Add args for sorting by new/hot/top
+    parser.add_argument(
+        "-v",
+        "--verbose",
+        dest="verbose",
+        action="store_true",
+        help="Output INFO level logging.",
+    )
+    parser.add_argument(
+        "-vv",
+        "--veryverbose",
+        dest="debug",
+        action="store_true",
+        help="Output DEBUG level logging.",
+    )
+    args = parser.parse_args()
+
+    if args.debug:
+        log_level = logging.DEBUG
+    elif args.verbose:
+        log_level = logging.INFO
+    else:
+        log_level = logging.ERROR
+
+    # Configure logging for this application
+    log = logging.getLogger("streamscrape")
+    log.propagate = 0  # prevent propagation to the root logger
+    ch = logging.StreamHandler()
+    log.setLevel(log_level)
+    ch.setLevel(log_level)
+    formatter = logging.Formatter("[%(levelname)s] %(name)s - %(message)s")
+    ch.setFormatter(formatter)
+    log.addHandler(ch)
+
+    # Call the main routine
+    if args.subreddit_name:
+        single_sub_urls = reddit.scrape_subreddit(args.subreddit_name, args.num_posts)
+    else:
+        last_scanned = utils.get_last_scanned("reddit")
+        cur_time = int(time.time())
+        all_urls = reddit.scrape_all(args.num_posts, last_scanned)
+
+        utils.save_urls_to_db(all_urls, "reddit")
+        # TODO: Check that scan was successful before updating time
+        utils.update_last_scanned("reddit", cur_time)
