@@ -65,15 +65,3 @@ make report
 # The output files will be saved in the `/figures` directory.
 ```
 
-## Citation
-
-If you use this work, please cite our paper:
-
-```bibtex
-@article{muruganandham2025fls,
-  title={A In-Depth Measurement of Security and Privacy Risks in the Free Live Streaming Ecosystem},
-  author={Muruganandham, Nithiya Shri and Keshvadi, Sina},
-  journal={TBD},
-  year={TBD},
-  publisher={TBD}
-}
